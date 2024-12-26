@@ -21,7 +21,6 @@ class AMeleeFighterCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
@@ -78,33 +77,36 @@ public:
 	float LastHitRecoveryDelay;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Combat")
-	float ResetAttackSequenceDelay;
+	float ResetAttackIndexDelay;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Combat")
 	float AdvanceAttackDelay;
-	
+
 	//Functions
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Combat")
 	void ResetAttacks();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Combat")
-	void ResetAttackSequence();
+	void AdvanceAttack();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Combat")
-	void AdvanceAttack();
+	void ResetAttackIndex();
 
 	UFUNCTION(Category = "Combat")
 	void ResetAttack();
-	
+	void ResetFinalHitDoOnce();
+
 private:
 	//doOnce bools
 	bool AttackDoOnce;
+	bool FinalHitDoOnce;	
 	
 	//timer handles
-	FTimerHandle ResetAttackTimerHandle;	
-	FTimerHandle AdvanceAttackTimerHandle;	
-	FTimerHandle ResetAttackSequenceTimerHandle;;	
+	FTimerHandle T_ResetAttack;	
+	FTimerHandle T_AdvanceAttack;	
+	FTimerHandle T_ResetAttackIndex;;	
+	FTimerHandle T_ResetFinalHitDoOnce;
 	
 protected:
 

@@ -146,11 +146,9 @@ void AMeleeFighterCharacter::Attack(const FInputActionValue& Value)
 	}
 	AttackDoOnce = true;
 
-
-
-	if (bAttacking && AttackAnimations.Num() - 1 != AttackIndex) //interrupt attack sequence
+	if (bAttacking && AttackAnimations.Num() - 1 != AttackIndex) //interrupt attack animation / sequence if not on final attack
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Stopping attack"));  //debug to verify primary attack is happening
+		//GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Stopping attack"));  //debug to verify primary attack is happening
 
 		//resetting any combo progression
 		if(T_AttackProgression.IsValid())
@@ -162,32 +160,43 @@ void AMeleeFighterCharacter::Attack(const FInputActionValue& Value)
 		StopAnimMontage(CurrentAttackAnim);
 
 		//if attack reset timer is not valid, initiate timer
-		if (GetWorld()->GetTimerManager().IsTimerActive(ResetAttackTimerHandle) != true)
+		if (GetWorld()->GetTimerManager().IsTimerActive(T_ResetAttack) != true)
 		{
 			AMeleeFighterCharacter::ResetAttacks_Implementation();			
 		}
 		return;
 	}
-	
-	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Attacking"));  //debug to verify primary attack is happening
-
-	
-	if (AttackAnimations.IsValidIndex(AttackIndex))  //verification that index is valid before attempting to attack
-	{
-		bAttacking = true;
-		CurrentAttackAnim = AttackAnimations[AttackIndex];
-		PlayAnimMontage(CurrentAttackAnim);
-
-		//Timers to reset sequence and advance combo
-		GetWorld()->GetTimerManager().SetTimer(ResetAttackSequenceTimerHandle, this, &AMeleeFighterCharacter::ResetAttackSequence_Implementation, ResetAttackSequenceDelay,false);
-		GetWorld()->GetTimerManager().SetTimer(T_AttackProgression, this, &AMeleeFighterCharacter::AdvanceAttack_Implementation, AdvanceAttackDelay, false);
-	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("Index Invalid"));
-	}
+		if (AttackAnimations.IsValidIndex(AttackIndex) && !FinalHitDoOnce)  //verification that index is valid before attempting to attack
+		{
+			//GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Attacking"));  //debug to verify primary attack is happening
 
-	//AMeleeFighterCharacter::ResetAttacks();
+			if (AttackAnimations.Num() -1 == AttackIndex)
+			{
+				FinalHitDoOnce = true;
+				if(GetWorld()->GetTimerManager().IsTimerActive(T_ResetFinalHitDoOnce))
+				{
+					
+				}
+				else
+				{
+					GetWorld()->GetTimerManager().SetTimer(T_ResetFinalHitDoOnce, this, &AMeleeFighterCharacter::ResetFinalHitDoOnce, ResetAttackIndexDelay, false);
+				} 
+			}	
+			bAttacking = true;
+			CurrentAttackAnim = AttackAnimations[AttackIndex];
+			PlayAnimMontage(CurrentAttackAnim);
+
+			//Timers to reset sequence and advance combo
+			GetWorld()->GetTimerManager().SetTimer(T_ResetAttackIndex, this, &AMeleeFighterCharacter::ResetAttackIndex_Implementation, ResetAttackIndexDelay,false);
+			GetWorld()->GetTimerManager().SetTimer(T_AttackProgression, this, &AMeleeFighterCharacter::AdvanceAttack_Implementation, AdvanceAttackDelay, false);
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("Index Invalid"));
+		}
+	}
 }
 
 void AMeleeFighterCharacter::StopAttack(const FInputActionValue& Value)  //Resetting do once
@@ -211,23 +220,30 @@ void AMeleeFighterCharacter::AdvanceAttack_Implementation()  //cycling through a
 
 void AMeleeFighterCharacter::ResetAttacks_Implementation()
 {
-	ResetAttackSequence_Implementation();
+	//ResetAttackSequence_Implementation();
 	//timer to reset attack bool
-	if(GetWorld()->GetTimerManager().IsTimerActive(ResetAttackTimerHandle))
+	if(GetWorld()->GetTimerManager().IsTimerActive(T_ResetAttack))
 	{
-		GetWorld()->GetTimerManager().ClearTimer(ResetAttackTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(T_ResetAttack);
 	}
-	GetWorld()->GetTimerManager().SetTimer(ResetAttackTimerHandle, this, &AMeleeFighterCharacter::ResetAttack, LastHitRecoveryDelay, false);
+	GetWorld()->GetTimerManager().SetTimer(T_ResetAttack, this, &AMeleeFighterCharacter::ResetAttack, LastHitRecoveryDelay, false);
+}
+
+void AMeleeFighterCharacter::ResetAttackIndex_Implementation()
+{
+	AttackIndex = 0;
+	//GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Index Reset"));
 }
 
 void AMeleeFighterCharacter::ResetAttack()
 {
 	bAttacking = false;
-	//calling delay with function
-	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Attack reset"));
+	//GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Attack reset"));
 }
 
-void AMeleeFighterCharacter::ResetAttackSequence_Implementation()
+
+
+void AMeleeFighterCharacter::ResetFinalHitDoOnce()
 {
-	AttackIndex = 0;
+	FinalHitDoOnce = false;
 }
