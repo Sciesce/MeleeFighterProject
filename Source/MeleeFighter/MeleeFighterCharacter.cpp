@@ -146,19 +146,11 @@ void AMeleeFighterCharacter::Attack(const FInputActionValue& Value)
 	}
 	AttackDoOnce = true;
 
-	if (bAttacking) //interrupt attack sequence
+
+
+	if (bAttacking && AttackAnimations.Num() - 1 != AttackIndex) //interrupt attack sequence
 	{
-		//if on final attack series, don't interrupt, player succeeded in completing chain
-		if ((AttackAnimations.Num()-1) == AttackIndex)
-		{
-			return;
-		}
-		//continue here with else statement to find where the function is skipping allowing cancellation on third attack.
-		/*else
-		{
-			GEngine->add
-		}
-		*/
+		GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Stopping attack"));  //debug to verify primary attack is happening
 
 		//resetting any combo progression
 		if(T_AttackProgression.IsValid())
@@ -188,7 +180,7 @@ void AMeleeFighterCharacter::Attack(const FInputActionValue& Value)
 
 		//Timers to reset sequence and advance combo
 		GetWorld()->GetTimerManager().SetTimer(ResetAttackSequenceTimerHandle, this, &AMeleeFighterCharacter::ResetAttackSequence_Implementation, ResetAttackSequenceDelay,false);
-		GetWorld()->GetTimerManager().SetTimer(AdvanceAttackTimerHandle, this, &AMeleeFighterCharacter::AdvanceAttack_Implementation, AdvanceAttackDelay, false);
+		GetWorld()->GetTimerManager().SetTimer(T_AttackProgression, this, &AMeleeFighterCharacter::AdvanceAttack_Implementation, AdvanceAttackDelay, false);
 	}
 	else
 	{
