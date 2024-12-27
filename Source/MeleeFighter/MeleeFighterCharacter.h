@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
+#include "Weapon_Parent.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Components/ChildActorComponent.h"
 #include "MeleeFighterCharacter.generated.h"
 
 class USpringArmComponent;
@@ -91,6 +93,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Combat")
 	bool bPrimaryAttack;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
+	UChildActorComponent* WeaponSocket;
+
 	//Functions
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Combat")
@@ -101,6 +106,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Combat")
 	void ResetAttackIndex();
+
 
 	UFUNCTION(Category = "Combat")
 	void ResetAttack();
@@ -116,6 +122,7 @@ private:
 	FTimerHandle T_AdvanceAttack;	
 	FTimerHandle T_ResetAttackIndex;;	
 	FTimerHandle T_ResetFinalHitDoOnce;
+
 	
 protected:
 
@@ -129,6 +136,10 @@ protected:
 	void PrimaryAttack(const FInputActionValue& Value);
 	void SecondaryAttack(const FInputActionValue& Value);
 	void StopAttack(const FInputActionValue& Value);
+
+	//Weapon ref
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+	AWeapon_Parent* EquippedWeapon;
 
 
 	

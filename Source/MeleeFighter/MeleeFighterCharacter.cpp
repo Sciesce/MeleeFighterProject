@@ -53,6 +53,9 @@ AMeleeFighterCharacter::AMeleeFighterCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	WeaponSocket = CreateDefaultSubobject<UChildActorComponent>("WeaponSocket");
+	WeaponSocket->SetupAttachment(GetMesh(), TEXT("hand_r"));
 }
 
 void AMeleeFighterCharacter::BeginPlay()
@@ -72,6 +75,24 @@ void AMeleeFighterCharacter::BeginPlay()
 	}
 
 	SetupPlayerInputComponent(PlayerController->InputComponent);
+
+	if (WeaponSocket && WeaponSocket->GetChildActor())
+	{
+		//casting to child to get instance of weapon.  Will need to update for swappable weapons
+		EquippedWeapon = Cast<AWeapon_Parent>(WeaponSocket->GetChildActor());
+		if (EquippedWeapon)
+		{
+			//GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Green, TEXT("Weapon stored"));
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Weapon not found"));
+		}
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Weapon Socket or Child are null"));
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -144,12 +165,14 @@ void AMeleeFighterCharacter::Look(const FInputActionValue& Value)
 void AMeleeFighterCharacter::PrimaryAttack(const FInputActionValue& Value)
 {
 	bPrimaryAttack = true;
+	EquippedWeapon->SetWeaponColor(2);
 	AMeleeFighterCharacter::HandleAttack(Value);
 }
 
 void AMeleeFighterCharacter::SecondaryAttack(const FInputActionValue& Value)
 {
 	bPrimaryAttack = false;
+	EquippedWeapon->SetWeaponColor(3);
 	AMeleeFighterCharacter::HandleAttack(Value);
 }
 
@@ -200,12 +223,10 @@ void AMeleeFighterCharacter::HandleAttack(const FInputActionValue& Value)
 			if(bPrimaryAttack)
 			{
 				CurrentAttackAnim = AttackAnimations[AttackIndex];
-				GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Primary Attack"));
 			}
 			else
 			{
 				CurrentAttackAnim = SecondaryAttackAnimations[AttackIndex];
-				GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Secondary Attack"));
 			}
 
 			//playing selected animation
@@ -217,7 +238,7 @@ void AMeleeFighterCharacter::HandleAttack(const FInputActionValue& Value)
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("Index Invalid"));
+			//GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("Index Invalid"));
 		}
 	}
 }
@@ -255,6 +276,7 @@ void AMeleeFighterCharacter::ResetAttacks_Implementation()
 void AMeleeFighterCharacter::ResetAttackIndex_Implementation()
 {
 	AttackIndex = 0;
+	EquippedWeapon->SetWeaponColor(1);
 	//GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Index Reset"));
 }
 

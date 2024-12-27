@@ -3,6 +3,8 @@
 
 #include "Weapon_Parent.h"
 
+#include "Editor/PropertyEditor/Private/EditConditionParserTests.h"
+
 // Sets default values
 AWeapon_Parent::AWeapon_Parent()
 {
@@ -40,4 +42,39 @@ void AWeapon_Parent::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+void AWeapon_Parent::SetWeaponColor(int32 Index)
+{
+	UMaterialInstance* NewMaterialInstance = nullptr;
+	
+	switch (Index)
+	{
+	case 1:
+		NewMaterialInstance = NeutralWeaponColor;
+		break;
+
+	case 2:
+		NewMaterialInstance = PrimaryAttackColor;
+		break;
+		
+	case 3:
+		NewMaterialInstance = SecondaryAttackColor;
+		break;
+
+	default:
+		
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("Invalid index"));
+		return;
+	}
+
+	if (!NewMaterialInstance)
+	{
+		return;
+	}
+
+	WeaponCore-> SetMaterial(0, NewMaterialInstance);
+
+	
+}
+
 

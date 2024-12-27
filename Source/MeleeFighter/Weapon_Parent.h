@@ -37,6 +37,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Combat")
 	UMaterialInstance* NeutralWeaponColor;
 
+	//Functions
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void SetWeaponColor(int32 Index);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
