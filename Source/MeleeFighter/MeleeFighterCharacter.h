@@ -46,7 +46,10 @@ class AMeleeFighterCharacter : public ACharacter
 	UInputAction* LookAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* AttackAction;
+	UInputAction* PrimaryAttackAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SecondaryAttackAction;
 	
 public:
 	AMeleeFighterCharacter();
@@ -68,6 +71,9 @@ public:
 	TArray<UAnimMontage*> AttackAnimations;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Combat")
+	TArray<UAnimMontage*> SecondaryAttackAnimations;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Combat")
 	UAnimMontage* CurrentAttackAnim;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Combat")
@@ -81,6 +87,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Combat")
 	float AdvanceAttackDelay;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Combat")
+	bool bPrimaryAttack;
 
 	//Functions
 
@@ -117,8 +126,13 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	/** Called for attack input */
-	void Attack(const FInputActionValue& Value);
+	void PrimaryAttack(const FInputActionValue& Value);
+	void SecondaryAttack(const FInputActionValue& Value);
 	void StopAttack(const FInputActionValue& Value);
+
+
+	
+	void HandleAttack(const FInputActionValue& Value);
 
 protected:
 	// APawn interface

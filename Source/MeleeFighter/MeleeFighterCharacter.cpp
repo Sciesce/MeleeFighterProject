@@ -93,8 +93,11 @@ void AMeleeFighterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMeleeFighterCharacter::Look);
 	
 		// Attacking
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AMeleeFighterCharacter::Attack);
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AMeleeFighterCharacter::StopAttack);
+		EnhancedInputComponent->BindAction(PrimaryAttackAction, ETriggerEvent::Started, this, &AMeleeFighterCharacter::PrimaryAttack);
+		EnhancedInputComponent->BindAction(PrimaryAttackAction, ETriggerEvent::Completed, this, &AMeleeFighterCharacter::StopAttack);
+
+		EnhancedInputComponent->BindAction(SecondaryAttackAction, ETriggerEvent::Started, this, &AMeleeFighterCharacter::SecondaryAttack);
+		EnhancedInputComponent->BindAction(SecondaryAttackAction, ETriggerEvent::Completed, this, &AMeleeFighterCharacter::StopAttack);
 	}
 	else
 	{
@@ -138,7 +141,19 @@ void AMeleeFighterCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void AMeleeFighterCharacter::Attack(const FInputActionValue& Value)
+void AMeleeFighterCharacter::PrimaryAttack(const FInputActionValue& Value)
+{
+	bPrimaryAttack = true;
+	AMeleeFighterCharacter::HandleAttack(Value);
+}
+
+void AMeleeFighterCharacter::SecondaryAttack(const FInputActionValue& Value)
+{
+	bPrimaryAttack = false;
+	AMeleeFighterCharacter::HandleAttack(Value);
+}
+
+void AMeleeFighterCharacter::HandleAttack(const FInputActionValue& Value)
 {
 	if (AttackDoOnce) //preventing double trigger, resets on release/complete
 	{
@@ -160,7 +175,7 @@ void AMeleeFighterCharacter::Attack(const FInputActionValue& Value)
 		StopAnimMontage(CurrentAttackAnim);
 
 		//if attack reset timer is not valid, initiate timer
-		if (GetWorld()->GetTimerManager().IsTimerActive(T_ResetAttack) != true)
+		if (!GetWorld()->GetTimerManager().IsTimerActive(T_ResetAttack))
 		{
 			AMeleeFighterCharacter::ResetAttacks_Implementation();			
 		}
@@ -175,19 +190,27 @@ void AMeleeFighterCharacter::Attack(const FInputActionValue& Value)
 			if (AttackAnimations.Num() -1 == AttackIndex)
 			{
 				FinalHitDoOnce = true;
-				if(GetWorld()->GetTimerManager().IsTimerActive(T_ResetFinalHitDoOnce))
-				{
-					
-				}
-				else
+				if(!GetWorld()->GetTimerManager().IsTimerActive(T_ResetFinalHitDoOnce))
 				{
 					GetWorld()->GetTimerManager().SetTimer(T_ResetFinalHitDoOnce, this, &AMeleeFighterCharacter::ResetFinalHitDoOnce, ResetAttackIndexDelay, false);
-				} 
+				}
 			}	
 			bAttacking = true;
-			CurrentAttackAnim = AttackAnimations[AttackIndex];
-			PlayAnimMontage(CurrentAttackAnim);
+	
+			if(bPrimaryAttack)
+			{
+				CurrentAttackAnim = AttackAnimations[AttackIndex];
+				GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Primary Attack"));
+			}
+			else
+			{
+				CurrentAttackAnim = SecondaryAttackAnimations[AttackIndex];
+				GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Secondary Attack"));
+			}
 
+			//playing selected animation
+			PlayAnimMontage(CurrentAttackAnim);
+			
 			//Timers to reset sequence and advance combo
 			GetWorld()->GetTimerManager().SetTimer(T_ResetAttackIndex, this, &AMeleeFighterCharacter::ResetAttackIndex_Implementation, ResetAttackIndexDelay,false);
 			GetWorld()->GetTimerManager().SetTimer(T_AttackProgression, this, &AMeleeFighterCharacter::AdvanceAttack_Implementation, AdvanceAttackDelay, false);
