@@ -45,6 +45,11 @@ void AWeapon_Parent::Tick(float DeltaTime)
 
 void AWeapon_Parent::SetWeaponColor(int32 Index)
 {
+	if (!WeaponCore)
+	{
+		return;
+	}
+	
 	UMaterialInstance* NewMaterialInstance = nullptr;
 	
 	switch (Index)
@@ -73,8 +78,6 @@ void AWeapon_Parent::SetWeaponColor(int32 Index)
 	}
 
 	WeaponCore-> SetMaterial(0, NewMaterialInstance);
-
-	
 }
 
 
