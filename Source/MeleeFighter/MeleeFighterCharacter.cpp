@@ -11,6 +11,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "TimerManager.h"
+#include "UI_HudBase.h"
+#include "MVVMGameSubsystem.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -56,6 +58,8 @@ AMeleeFighterCharacter::AMeleeFighterCharacter()
 
 	WeaponSocket = CreateDefaultSubobject<UChildActorComponent>("WeaponSocket");
 	WeaponSocket->SetupAttachment(GetMesh(), TEXT("hand_r"));
+
+	
 }
 
 void AMeleeFighterCharacter::BeginPlay()
@@ -92,6 +96,43 @@ void AMeleeFighterCharacter::BeginPlay()
 	else
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Weapon Socket or Child are null"));
+	}
+
+	UMVVMGameSubsystem* MVVMSubsystem = GetGameInstance()->GetSubsystem<UMVVMGameSubsystem>();
+
+	if (!MVVMSubsystem)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to get subsystem"))
+		return;
+	}
+
+	UMVVMViewModelCollectionObject* ViewModelCollection = MVVMSubsystem->GetViewModelCollection();
+	if(!ViewModelCollection)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No collection"));
+		return;
+	}
+
+	HUDViewModel = NewObject<UHUDMVVM>(this, UHUDMVVM::StaticClass());
+	if(!HUDViewModel)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No View Model"));
+		return;
+	}
+
+	FMVVMViewModelContext ViewModelContext(UHUDMVVM::StaticClass(), FName("HUDViewModel")); 
+
+	ViewModelCollection->AddViewModelInstance(ViewModelContext, HUDViewModel);
+	
+	if(HudWidgetClass)
+	{ 
+		HudWidgetInstance = CreateWidget<UUI_HudBase>(GetWorld(), HudWidgetClass);
+
+		if(HudWidgetInstance && HUDViewModel)
+		{
+			HudWidgetInstance->ViewModel = HUDViewModel;
+			HudWidgetInstance->AddToViewport();
+		}
 	}
 }
 
@@ -164,15 +205,22 @@ void AMeleeFighterCharacter::Look(const FInputActionValue& Value)
 
 void AMeleeFighterCharacter::PrimaryAttack(const FInputActionValue& Value)
 {
+	if(!bAttacking)
+	{
 	bPrimaryAttack = true;
 	EquippedWeapon->SetWeaponColor(2);
+	HUDViewModel->Stamina += 1;
+	}
 	AMeleeFighterCharacter::HandleAttack(Value);
 }
 
 void AMeleeFighterCharacter::SecondaryAttack(const FInputActionValue& Value)
 {
+	if(!bAttacking)
+	{
 	bPrimaryAttack = false;
 	EquippedWeapon->SetWeaponColor(3);
+	}
 	AMeleeFighterCharacter::HandleAttack(Value);
 }
 

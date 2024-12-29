@@ -8,6 +8,9 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "Components/ChildActorComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "HUDMVVM.h"
+#include "UI_HudBase.h"
 #include "MeleeFighterCharacter.generated.h"
 
 class USpringArmComponent;
@@ -52,11 +55,15 @@ class AMeleeFighterCharacter : public ACharacter
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SecondaryAttackAction;
+
 	
 public:
 	AMeleeFighterCharacter();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	UHUDMVVM* ViewModel;
 	//Variables
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 	int32 Health;
 
@@ -95,6 +102,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
 	UChildActorComponent* WeaponSocket;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UUserWidget> HudWidgetClass;
+
+	UPROPERTY(BlueprintReadWrite, Category = "UI")
+	UHUDMVVM* HUDViewModel;
 
 	//Functions
 
@@ -140,10 +153,13 @@ protected:
 	//Weapon ref
 	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
 	AWeapon_Parent* EquippedWeapon;
-
-
 	
 	void HandleAttack(const FInputActionValue& Value);
+
+	UPROPERTY()
+	UUI_HudBase* HudWidgetInstance;
+
+	
 
 protected:
 	// APawn interface
