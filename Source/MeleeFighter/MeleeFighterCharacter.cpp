@@ -98,7 +98,7 @@ void AMeleeFighterCharacter::BeginPlay()
 		GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Weapon Socket or Child are null"));
 	}
 
-	UMVVMGameSubsystem* MVVMSubsystem = GetGameInstance()->GetSubsystem<UMVVMGameSubsystem>();
+	/*UMVVMGameSubsystem* MVVMSubsystem = GetGameInstance()->GetSubsystem<UMVVMGameSubsystem>();
 
 	if (!MVVMSubsystem)
 	{
@@ -126,14 +126,15 @@ void AMeleeFighterCharacter::BeginPlay()
 	
 	if(HudWidgetClass)
 	{ 
-		HudWidgetInstance = CreateWidget<UUI_HudBase>(GetWorld(), HudWidgetClass);
+		HudWidgetInstance = CreateWidget<UUI_HudBase>(PlayerController, HudWidgetClass);
 
 		if(HudWidgetInstance && HUDViewModel)
 		{
-			HudWidgetInstance->ViewModel = HUDViewModel;
-			HudWidgetInstance->AddToViewport();
+			//HUDViewModel->
+			HudWidgetInstance->SetViewModel(HUDViewModel);
+			//HudWidgetInstance->AddToViewport();
 		}
-	}
+	}*/
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -205,23 +206,29 @@ void AMeleeFighterCharacter::Look(const FInputActionValue& Value)
 
 void AMeleeFighterCharacter::PrimaryAttack(const FInputActionValue& Value)
 {
-	if(!bAttacking)
+	if(!bAttacking && !FinalHitDoOnce)
 	{
-	bPrimaryAttack = true;
-	EquippedWeapon->SetWeaponColor(2);
-	HUDViewModel->Stamina += 1;
+		bPrimaryAttack = true;
+		EquippedWeapon->SetWeaponColor(2);
+		Stamina = FMath::Clamp(Stamina + 10, 0.0, MaxStamina);
+		UpdateStamina();
 	}
 	AMeleeFighterCharacter::HandleAttack(Value);
 }
 
 void AMeleeFighterCharacter::SecondaryAttack(const FInputActionValue& Value)
 {
-	if(!bAttacking)
+	if(Stamina >= EnhancedAttackCost) //if player has enough to do special cast
 	{
-	bPrimaryAttack = false;
-	EquippedWeapon->SetWeaponColor(3);
+		if(!bAttacking && !FinalHitDoOnce)
+		{
+			bPrimaryAttack = false;
+			EquippedWeapon->SetWeaponColor(3);
+			Stamina -= EnhancedAttackCost;
+			UpdateStamina();
+		}
+		AMeleeFighterCharacter::HandleAttack(Value);
 	}
-	AMeleeFighterCharacter::HandleAttack(Value);
 }
 
 void AMeleeFighterCharacter::HandleAttack(const FInputActionValue& Value)
@@ -340,3 +347,9 @@ void AMeleeFighterCharacter::ResetFinalHitDoOnce()
 {
 	FinalHitDoOnce = false;
 }
+
+void AMeleeFighterCharacter::UpdateStamina_Implementation()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("UpdateStam called"));
+}
+

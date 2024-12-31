@@ -60,15 +60,16 @@ class AMeleeFighterCharacter : public ACharacter
 public:
 	AMeleeFighterCharacter();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	UHUDMVVM* ViewModel;
 	//Variables
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 	int32 Health;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	float Endurance;
+	int Stamina;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	int MaxStamina;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool bAttacking;
@@ -106,8 +107,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UUserWidget> HudWidgetClass;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Combat")
+	int32 EnhancedAttackCost;
+
+	/*UPROPERTY(BlueprintReadWrite, Category = "UI")
+	UHUDMVVM* HUDViewModel;*/
+
 	UPROPERTY(BlueprintReadWrite, Category = "UI")
-	UHUDMVVM* HUDViewModel;
+	UUI_HudBase* HudWidgetInstance;
 
 	//Functions
 
@@ -119,6 +126,9 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Combat")
 	void ResetAttackIndex();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Combat")
+	void UpdateStamina();
 
 
 	UFUNCTION(Category = "Combat")
@@ -156,8 +166,7 @@ protected:
 	
 	void HandleAttack(const FInputActionValue& Value);
 
-	UPROPERTY()
-	UUI_HudBase* HudWidgetInstance;
+	
 
 	
 

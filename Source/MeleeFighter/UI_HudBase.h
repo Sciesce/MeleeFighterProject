@@ -16,10 +16,15 @@ class MELEEFIGHTER_API UUI_HudBase : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void SetViewModel(UHUDMVVM* InViewModel);
 
+protected:
 	//viewmodel reference
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
-	UHUDMVVM* ViewModel;
+	UPROPERTY()
+	UHUDMVVM* HUDViewModel;
 
+	virtual void NativeConstruct() override;
 	
 };
