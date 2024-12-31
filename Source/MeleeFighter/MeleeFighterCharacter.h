@@ -8,6 +8,9 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "Components/ChildActorComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "HUDMVVM.h"
+#include "UI_HudBase.h"
 #include "MeleeFighterCharacter.generated.h"
 
 class USpringArmComponent;
@@ -52,16 +55,21 @@ class AMeleeFighterCharacter : public ACharacter
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SecondaryAttackAction;
+
 	
 public:
 	AMeleeFighterCharacter();
 
 	//Variables
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 	int32 Health;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	float Endurance;
+	int Stamina;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	int MaxStamina;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool bAttacking;
@@ -96,6 +104,18 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
 	UChildActorComponent* WeaponSocket;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UUserWidget> HudWidgetClass;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Combat")
+	int32 EnhancedAttackCost;
+
+	/*UPROPERTY(BlueprintReadWrite, Category = "UI")
+	UHUDMVVM* HUDViewModel;*/
+
+	UPROPERTY(BlueprintReadWrite, Category = "UI")
+	UUI_HudBase* HudWidgetInstance;
+
 	//Functions
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Combat")
@@ -106,6 +126,9 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Combat")
 	void ResetAttackIndex();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Combat")
+	void UpdateStamina();
 
 
 	UFUNCTION(Category = "Combat")
@@ -140,10 +163,12 @@ protected:
 	//Weapon ref
 	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
 	AWeapon_Parent* EquippedWeapon;
-
-
 	
 	void HandleAttack(const FInputActionValue& Value);
+
+	
+
+	
 
 protected:
 	// APawn interface

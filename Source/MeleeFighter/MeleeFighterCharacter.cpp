@@ -11,6 +11,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "TimerManager.h"
+#include "UI_HudBase.h"
+#include "MVVMGameSubsystem.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -56,6 +58,8 @@ AMeleeFighterCharacter::AMeleeFighterCharacter()
 
 	WeaponSocket = CreateDefaultSubobject<UChildActorComponent>("WeaponSocket");
 	WeaponSocket->SetupAttachment(GetMesh(), TEXT("hand_r"));
+
+	
 }
 
 void AMeleeFighterCharacter::BeginPlay()
@@ -93,6 +97,44 @@ void AMeleeFighterCharacter::BeginPlay()
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Weapon Socket or Child are null"));
 	}
+
+	/*UMVVMGameSubsystem* MVVMSubsystem = GetGameInstance()->GetSubsystem<UMVVMGameSubsystem>();
+
+	if (!MVVMSubsystem)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to get subsystem"))
+		return;
+	}
+
+	UMVVMViewModelCollectionObject* ViewModelCollection = MVVMSubsystem->GetViewModelCollection();
+	if(!ViewModelCollection)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No collection"));
+		return;
+	}
+
+	HUDViewModel = NewObject<UHUDMVVM>(this, UHUDMVVM::StaticClass());
+	if(!HUDViewModel)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No View Model"));
+		return;
+	}
+
+	FMVVMViewModelContext ViewModelContext(UHUDMVVM::StaticClass(), FName("HUDViewModel")); 
+
+	ViewModelCollection->AddViewModelInstance(ViewModelContext, HUDViewModel);
+	
+	if(HudWidgetClass)
+	{ 
+		HudWidgetInstance = CreateWidget<UUI_HudBase>(PlayerController, HudWidgetClass);
+
+		if(HudWidgetInstance && HUDViewModel)
+		{
+			//HUDViewModel->
+			HudWidgetInstance->SetViewModel(HUDViewModel);
+			//HudWidgetInstance->AddToViewport();
+		}
+	}*/
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -164,16 +206,29 @@ void AMeleeFighterCharacter::Look(const FInputActionValue& Value)
 
 void AMeleeFighterCharacter::PrimaryAttack(const FInputActionValue& Value)
 {
-	bPrimaryAttack = true;
-	EquippedWeapon->SetWeaponColor(2);
+	if(!bAttacking && !FinalHitDoOnce)
+	{
+		bPrimaryAttack = true;
+		EquippedWeapon->SetWeaponColor(2);
+		Stamina = FMath::Clamp(Stamina + 10, 0.0, MaxStamina);
+		UpdateStamina();
+	}
 	AMeleeFighterCharacter::HandleAttack(Value);
 }
 
 void AMeleeFighterCharacter::SecondaryAttack(const FInputActionValue& Value)
 {
-	bPrimaryAttack = false;
-	EquippedWeapon->SetWeaponColor(3);
-	AMeleeFighterCharacter::HandleAttack(Value);
+	if(Stamina >= EnhancedAttackCost) //if player has enough to do special cast
+	{
+		if(!bAttacking && !FinalHitDoOnce)
+		{
+			bPrimaryAttack = false;
+			EquippedWeapon->SetWeaponColor(3);
+			Stamina -= EnhancedAttackCost;
+			UpdateStamina();
+		}
+		AMeleeFighterCharacter::HandleAttack(Value);
+	}
 }
 
 void AMeleeFighterCharacter::HandleAttack(const FInputActionValue& Value)
@@ -292,3 +347,9 @@ void AMeleeFighterCharacter::ResetFinalHitDoOnce()
 {
 	FinalHitDoOnce = false;
 }
+
+void AMeleeFighterCharacter::UpdateStamina_Implementation()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("UpdateStam called"));
+}
+
