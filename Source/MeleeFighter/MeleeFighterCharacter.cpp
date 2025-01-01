@@ -206,28 +206,34 @@ void AMeleeFighterCharacter::Look(const FInputActionValue& Value)
 
 void AMeleeFighterCharacter::PrimaryAttack(const FInputActionValue& Value)
 {
-	if(!bAttacking && !FinalHitDoOnce)
+	if(EquippedWeapon != nullptr)
 	{
-		bPrimaryAttack = true;
-		EquippedWeapon->SetWeaponColor(2);
-		Stamina = FMath::Clamp(Stamina + 10, 0.0, MaxStamina);
-		UpdateStamina();
+		if(!bAttacking && !FinalHitDoOnce)
+		{
+			bPrimaryAttack = true;
+			EquippedWeapon->SetWeaponColor(2);
+			Stamina = FMath::Clamp(Stamina + 10, 0.0, MaxStamina);
+			UpdateStamina();
+		}
+		AMeleeFighterCharacter::HandleAttack(Value);
 	}
-	AMeleeFighterCharacter::HandleAttack(Value);
 }
 
 void AMeleeFighterCharacter::SecondaryAttack(const FInputActionValue& Value)
 {
-	if(Stamina >= EnhancedAttackCost) //if player has enough to do special cast
+	if(EquippedWeapon != nullptr)
 	{
-		if(!bAttacking && !FinalHitDoOnce)
+		if(Stamina >= EnhancedAttackCost) //if player has enough to do special cast
 		{
-			bPrimaryAttack = false;
-			EquippedWeapon->SetWeaponColor(3);
-			Stamina -= EnhancedAttackCost;
-			UpdateStamina();
+			if(!bAttacking && !FinalHitDoOnce)
+			{
+				bPrimaryAttack = false;
+				EquippedWeapon->SetWeaponColor(3);
+				Stamina -= EnhancedAttackCost;
+				UpdateStamina();
+			}
+			AMeleeFighterCharacter::HandleAttack(Value);
 		}
-		AMeleeFighterCharacter::HandleAttack(Value);
 	}
 }
 
