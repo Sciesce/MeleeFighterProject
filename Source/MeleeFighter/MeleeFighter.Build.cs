@@ -8,6 +8,18 @@ public class MeleeFighter : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayTasks", "UMG", "ModelViewViewModel"});
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core", 
+			"CoreUObject", 
+			"Engine", 
+			"InputCore", 
+			"EnhancedInput", 
+			"GameplayTasks", 
+			"UMG", 
+			"ModelViewViewModel", 
+			"AIModule",
+			"NavigationSystem"
+		});
 	}
 }
