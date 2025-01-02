@@ -58,8 +58,6 @@ AMeleeFighterCharacter::AMeleeFighterCharacter()
 
 	WeaponSocket = CreateDefaultSubobject<UChildActorComponent>("WeaponSocket");
 	WeaponSocket->SetupAttachment(GetMesh(), TEXT("hand_r"));
-
-	
 }
 
 void AMeleeFighterCharacter::BeginPlay()
@@ -339,6 +337,43 @@ void AMeleeFighterCharacter::ResetAttackIndex_Implementation()
 	AttackIndex = 0;
 	EquippedWeapon->SetWeaponColor(1);
 	//GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Index Reset"));
+}
+
+void AMeleeFighterCharacter::EquipWeapon(AWeapon_Parent* InWeapon)
+{
+	if(!InWeapon)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("InWeapon invalid"));
+		return;
+	}
+	//assigning the equipped weapon
+	if(WeaponSocket)
+	{
+		WeaponSocket->SetChildActorClass(InWeapon->GetClass()); //getting class of fed in weapon
+		WeaponSocket->CreateChildActor(); //instancing the actor
+	}
+
+	EquippedWeapon = Cast<AWeapon_Parent>(WeaponSocket->GetChildActor()); //updating ref
+	
+	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Green,TEXT("Equipped Weapon Complete"));
+}
+
+AWeapon_Parent* AMeleeFighterCharacter::GetEquippedWeapon()
+{
+	return EquippedWeapon;
+}
+
+void AMeleeFighterCharacter::ClearEquippedWeapon()
+{
+	EquippedWeapon->Destroy();
+	return;
+}
+
+void AMeleeFighterCharacter::SwapEquippedWeapon(AWeapon_Parent* InWeapon)
+{
+	ClearEquippedWeapon();
+	EquipWeapon(InWeapon);
+	return;
 }
 
 void AMeleeFighterCharacter::ResetAttack()

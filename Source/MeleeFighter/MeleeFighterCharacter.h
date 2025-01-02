@@ -130,6 +130,17 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Combat")
 	void UpdateStamina();
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void EquipWeapon(AWeapon_Parent* InWeapon);
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	AWeapon_Parent* GetEquippedWeapon();
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void ClearEquippedWeapon();
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void SwapEquippedWeapon(AWeapon_Parent* InWeapon);
 
 	UFUNCTION(Category = "Combat")
 	void ResetAttack();

@@ -2,7 +2,7 @@
 
 
 #include "Weapon_Parent.h"
-
+#include "MeleeFighterCharacter.h"
 #include "Editor/PropertyEditor/Private/EditConditionParserTests.h"
 
 // Sets default values
@@ -19,6 +19,15 @@ AWeapon_Parent::AWeapon_Parent()
 	HitBox = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBox"));
 	HitBox->SetupAttachment(WeaponRoot);
 
+	PickupBox = CreateDefaultSubobject<UBoxComponent>(TEXT("PickupBox"));
+	PickupBox->SetupAttachment(WeaponRoot);
+	PickupBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	PickupBox->SetCollisionObjectType(ECC_WorldDynamic);
+	PickupBox->SetCollisionResponseToAllChannels(ECR_Ignore);
+	PickupBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	PickupBox->SetGenerateOverlapEvents(true);
+	PickupBox->OnComponentBeginOverlap.AddDynamic(this, &AWeapon_Parent::OnPickupBoxOverlap);
+
 	WeaponHandle = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponHandle"));
 	WeaponHandle->SetupAttachment(WeaponRoot);
 
@@ -26,6 +35,7 @@ AWeapon_Parent::AWeapon_Parent()
 	WeaponCore->SetupAttachment(WeaponRoot);
 	
 	WeaponCore->SetMaterial(1, NeutralWeaponColor);
+	equipped = true; //preventing recursive looping when spawning in after picking up
 
 }
 
@@ -78,6 +88,34 @@ void AWeapon_Parent::SetWeaponColor(int32 Index)
 	}
 
 	WeaponCore-> SetMaterial(0, NewMaterialInstance);
+}
+
+void AWeapon_Parent::OnPickupBoxOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if(!equipped)
+	{
+		AMeleeFighterCharacter* Character = Cast<AMeleeFighterCharacter>(OtherActor);
+		if (Character)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("Character Detected"));
+			//attaching to character if cast is successful
+			AWeapon_Parent* OldWeapon = Character->GetEquippedWeapon();
+			if (OldWeapon)
+			{
+				Character->SwapEquippedWeapon(this);
+			}
+			else
+			{
+				Character->EquipWeapon(this);
+			}
+			equipped = true;
+			Destroy();
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("No Player Detected"));
+		}
+	}
 }
 
 
